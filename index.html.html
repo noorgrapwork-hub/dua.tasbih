@@ -1,0 +1,485 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Dua &amp; Tasbih · Larana Mosque</title>
+<link rel="icon" href="logo.png">
+<link href="https://fonts.googleapis.com/css2?family=Amiri:wght@400;700&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --gold: #d4af37;
+    --gold-light: #f6e27a;
+    --gold-dark: #8a6d1d;
+    --bg: #0b0b0d;
+    --text: #f3ead2;
+  }
+  * { box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
+  body {
+    margin: 0;
+    min-height: 100vh;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 24px;
+    background: radial-gradient(circle at 50% 0%, #1f1a0d 0%, var(--bg) 60%);
+    color: var(--text);
+    font-family: "Segoe UI", system-ui, -apple-system, sans-serif;
+  }
+  .card {
+    width: 100%;
+    max-width: 500px;
+    background: linear-gradient(160deg, #1a1a1e, #141417);
+    border: 1px solid var(--gold-dark);
+    border-radius: 24px;
+    padding: 30px 26px;
+    text-align: center;
+    box-shadow: 0 0 0 4px #0b0b0d, 0 0 0 5px rgba(212,175,55,.35), 0 30px 60px rgba(0,0,0,.7);
+  }
+  .logo { display: block; margin: 0 auto 14px; height: auto; }
+  .logo.big { width: 170px; }
+  .logo.small { width: 96px; margin-bottom: 8px; }
+  .tag { font-size: 12px; letter-spacing: 4px; text-transform: uppercase; color: var(--gold); margin: 0 0 8px; }
+  h1 {
+    font-size: 28px; margin: 0 0 20px;
+    background: linear-gradient(90deg, var(--gold-light), var(--gold), var(--gold-light));
+    -webkit-background-clip: text; background-clip: text; color: transparent;
+  }
+  .tabs { display: flex; gap: 8px; margin-bottom: 24px; }
+  .tab {
+    flex: 1; padding: 10px; font-family: inherit; font-size: 15px; font-weight: 600;
+    background: transparent; color: var(--gold); border: 1px solid var(--gold-dark);
+    border-radius: 999px; cursor: pointer;
+  }
+  .tab.active {
+    color: #1a1304; border-color: transparent;
+    background: linear-gradient(135deg, var(--gold-light), var(--gold) 50%, var(--gold-dark));
+  }
+  .panel { display: none; }
+  .panel.active { display: block; }
+
+  /* Tasbih */
+  select {
+    width: 100%; padding: 12px 16px; margin-bottom: 14px; font-family: inherit; font-size: 15px;
+    color: var(--text); background: #0b0b0d; border: 1px solid var(--gold-dark);
+    border-radius: 999px; outline: none;
+  }
+  .zikr { font-family: "Amiri", "Traditional Arabic", serif; font-size: 34px; color: var(--gold-light); margin: 0 0 4px; }
+  .zikr-en { font-size: 14px; opacity: .75; margin: 0 0 18px; }
+  .ring-wrap { position: relative; width: 220px; height: 220px; margin: 0 auto 22px; }
+  .ring-wrap svg { transform: rotate(-90deg); }
+  .ring-bg { fill: none; stroke: #2a2410; stroke-width: 10; }
+  .ring-fg {
+    fill: none; stroke: url(#goldGrad); stroke-width: 10; stroke-linecap: round;
+    stroke-dasharray: 565.5; stroke-dashoffset: 565.5; transition: stroke-dashoffset .25s ease;
+  }
+  .ring-text { position: absolute; inset: 0; display: flex; flex-direction: column; align-items: center; justify-content: center; }
+  #count {
+    font-size: 64px; font-weight: 700; line-height: 1;
+    background: linear-gradient(180deg, var(--gold-light), var(--gold) 60%, var(--gold-dark));
+    -webkit-background-clip: text; background-clip: text; color: transparent;
+    transition: transform .12s ease;
+  }
+  #count.pop { transform: scale(1.12); }
+  #target { font-size: 14px; opacity: .6; margin-top: 6px; }
+  .buttons { display: flex; gap: 12px; }
+  button.main { flex: 1; padding: 15px; font-size: 16px; font-weight: 600; font-family: inherit; border-radius: 999px; cursor: pointer; }
+  #tapBtn {
+    border: none; color: #1a1304;
+    background: linear-gradient(135deg, var(--gold-light), var(--gold) 50%, var(--gold-dark));
+    box-shadow: 0 8px 22px rgba(212,175,55,.3);
+  }
+  #resetBtn { background: transparent; color: var(--gold); border: 1px solid var(--gold-dark); flex: .6; }
+  button:active { transform: scale(.97); }
+  #done { min-height: 24px; margin: 16px 0 0; color: var(--gold-light); font-weight: 600; }
+  #stats { font-size: 14px; color: var(--gold-light); margin: 4px 0 0; }
+  #total { font-size: 12px; opacity: .5; margin: 6px 0 0; }
+
+  .target-row { display: flex; align-items: center; justify-content: center; gap: 8px; margin-bottom: 16px; flex-wrap: wrap; font-size: 14px; }
+  .chip {
+    padding: 6px 14px; font-family: inherit; font-size: 14px; cursor: pointer;
+    color: var(--gold); background: transparent; border: 1px solid var(--gold-dark); border-radius: 999px;
+  }
+  .chip.active { color: #1a1304; border-color: transparent; background: linear-gradient(135deg, var(--gold-light), var(--gold)); }
+  #targetInput {
+    width: 90px; padding: 6px 12px; font-family: inherit; font-size: 14px; text-align: center;
+    color: var(--text); background: #0b0b0d; border: 1px solid var(--gold-dark); border-radius: 999px; outline: none;
+  }
+
+  /* Dua */
+  .dua-box {
+    min-height: 270px; padding: 20px 14px; border: 1px solid #2f2712; border-radius: 18px;
+    background: #0e0e10; display: flex; flex-direction: column; justify-content: center;
+  }
+  .dua-title { color: var(--gold); font-size: 15px; font-weight: 600; margin: 0 0 14px; }
+  .dua-ar { font-family: "Amiri", "Traditional Arabic", serif; font-size: 28px; line-height: 2; color: var(--gold-light); margin: 0 0 14px; direction: rtl; }
+  .dua-en { font-size: 15px; line-height: 1.7; margin: 0 0 8px; }
+  .dua-ref { font-size: 12px; opacity: .5; margin: 0; }
+  .nav { display: flex; align-items: center; justify-content: space-between; margin-top: 16px; }
+  .nav button {
+    width: 46px; height: 46px; border-radius: 50%; font-size: 20px; cursor: pointer;
+    background: transparent; color: var(--gold); border: 1px solid var(--gold-dark);
+  }
+  #pos { font-size: 13px; opacity: .6; }
+
+  /* Name gate */
+  .hidden { display: none !important; }
+  #nameInput {
+    width: 100%; padding: 14px 18px; font-size: 16px; font-family: inherit;
+    color: var(--text); background: #0b0b0d; border: 1px solid var(--gold-dark);
+    border-radius: 999px; outline: none; margin-bottom: 14px;
+  }
+  #nameInput:focus { border-color: var(--gold); box-shadow: 0 0 0 3px rgba(212,175,55,.2); }
+  #enterBtn {
+    width: 100%; padding: 14px; font-size: 16px; font-weight: 600; font-family: inherit;
+    color: #1a1304; border: none; border-radius: 999px; cursor: pointer;
+    background: linear-gradient(135deg, var(--gold-light), var(--gold) 50%, var(--gold-dark));
+    box-shadow: 0 8px 22px rgba(212,175,55,.3);
+  }
+  #gateMsg { min-height: 24px; margin: 16px 0 0; color: #ff8a8a; font-size: 15px; }
+  .hello { margin: -10px 0 18px; font-size: 16px; color: var(--gold-light); font-weight: 600; }
+  .link-btn {
+    background: none; border: none; color: var(--gold); opacity: .7; font-family: inherit;
+    font-size: 12px; cursor: pointer; text-decoration: underline; margin-left: 6px;
+  }
+  #soundBtn { margin: 10px 0 0; }
+</style>
+</head>
+<body>
+
+<div class="card" id="gate">
+  <img class="logo big" src="logo.png" alt="Larana Mosque logo">
+  <p class="tag">Welcome</p>
+  <h1>What’s your name?</h1>
+  <input type="text" id="nameInput" placeholder="Enter your name" autocomplete="off">
+  <button id="enterBtn">Submit</button>
+  <p id="gateMsg"></p>
+</div>
+
+<div class="card hidden" id="app">
+  <img class="logo small" src="logo.png" alt="Larana Mosque logo">
+  <p class="tag">Dua &amp; Tasbih</p>
+  <h1>Dua &amp; Tasbih</h1>
+  <p class="hello"><span id="helloText"></span><button class="link-btn" id="changeName">Change name</button></p>
+
+  <div class="tabs">
+    <button class="tab active" data-tab="tasbih">📿 Tasbih</button>
+    <button class="tab" data-tab="dua">🤲 Dua</button>
+  </div>
+
+  <!-- Tasbih -->
+  <div class="panel active" id="tasbih">
+    <select id="zikrSelect" aria-label="Choose a dhikr"></select>
+    <div class="target-row">
+      <span>Target:</span>
+      <button class="chip" data-t="33">33</button>
+      <button class="chip" data-t="100">100</button>
+      <button class="chip" data-t="1000">1000</button>
+      <input type="number" id="targetInput" min="1" max="100000" placeholder="Custom" aria-label="Enter a custom target">
+    </div>
+    <p class="zikr" id="zikrAr"></p>
+    <p class="zikr-en" id="zikrEn"></p>
+
+    <div class="ring-wrap">
+      <svg width="220" height="220" viewBox="0 0 200 200" aria-hidden="true">
+        <defs>
+          <linearGradient id="goldGrad" x1="0" y1="0" x2="1" y2="1">
+            <stop offset="0" stop-color="#f6e27a"/>
+            <stop offset="1" stop-color="#b8922a"/>
+          </linearGradient>
+        </defs>
+        <circle class="ring-bg" cx="100" cy="100" r="90"/>
+        <circle class="ring-fg" id="ring" cx="100" cy="100" r="90"/>
+      </svg>
+      <div class="ring-text">
+        <div id="count">0</div>
+        <div id="target"></div>
+      </div>
+    </div>
+
+    <div class="buttons">
+      <button class="main" id="tapBtn">Count +1</button>
+      <button class="main" id="resetBtn">Reset</button>
+    </div>
+    <p id="done"></p>
+    <p id="stats"></p>
+    <p id="total"></p>
+    <button class="link-btn" id="soundBtn"></button>
+  </div>
+
+  <!-- Dua -->
+  <div class="panel" id="dua">
+    <div class="dua-box">
+      <p class="dua-title" id="duaTitle"></p>
+      <p class="dua-ar" id="duaAr"></p>
+      <p class="dua-en" id="duaEn"></p>
+      <p class="dua-ref" id="duaRef"></p>
+    </div>
+    <div class="nav">
+      <button id="prevBtn" aria-label="Previous dua">‹</button>
+      <span id="pos"></span>
+      <button id="nextBtn" aria-label="Next dua">›</button>
+    </div>
+  </div>
+</div>
+
+<script>
+  // ---------- Data ----------
+  const zikrs = [
+    { ar: "سُبْحَانَ اللَّهِ",   en: "SubhanAllah",        meaning: "Glory be to Allah",             target: 100 },
+    { ar: "الْحَمْدُ لِلَّهِ",   en: "Alhamdulillah",      meaning: "All praise is for Allah",       target: 100 },
+    { ar: "اللَّهُ أَكْبَرُ",    en: "Allahu Akbar",       meaning: "Allah is the Greatest",         target: 100 },
+    { ar: "لَا إِلَٰهَ إِلَّا اللَّهُ", en: "La ilaha illallah", meaning: "There is no god but Allah",  target: 100 },
+    { ar: "أَسْتَغْفِرُ اللَّهَ", en: "Astaghfirullah",     meaning: "I seek forgiveness from Allah", target: 100 }
+  ];
+
+  const duas = [
+    { title: "Good in this world and the next",
+      ar: "رَبَّنَا آتِنَا فِي الدُّنْيَا حَسَنَةً وَفِي الْآخِرَةِ حَسَنَةً وَقِنَا عَذَابَ النَّارِ",
+      en: "Our Lord, give us good in this world and good in the Hereafter, and protect us from the punishment of the Fire.",
+      ref: "Surah Al-Baqarah, 2:201" },
+    { title: "Dua for increase in knowledge",
+      ar: "رَبِّ زِدْنِي عِلْمًا",
+      en: "My Lord, increase me in knowledge.",
+      ref: "Surah Ta-Ha, 20:114" },
+    { title: "Dua for ease in your affairs",
+      ar: "رَبِّ اشْرَحْ لِي صَدْرِي وَيَسِّرْ لِي أَمْرِي",
+      en: "My Lord, expand my chest for me and make my task easy for me.",
+      ref: "Surah Ta-Ha, 20:25-26" },
+    { title: "Trusting in Allah",
+      ar: "حَسْبُنَا اللَّهُ وَنِعْمَ الْوَكِيلُ",
+      en: "Allah is sufficient for us, and He is the best disposer of affairs.",
+      ref: "Surah Aal-E-Imran, 3:173" },
+    { title: "Before eating",
+      ar: "بِسْمِ اللَّهِ",
+      en: "In the name of Allah.",
+      ref: "Sunnah" },
+    { title: "After eating",
+      ar: "الْحَمْدُ لِلَّهِ الَّذِي أَطْعَمَنَا وَسَقَانَا وَجَعَلَنَا مُسْلِمِينَ",
+      en: "All praise is for Allah, who fed us, gave us drink, and made us Muslims.",
+      ref: "Abu Dawud" },
+    { title: "🌅 Morning dua",
+      ar: "اللَّهُمَّ بِكَ أَصْبَحْنَا وَبِكَ أَمْسَيْنَا وَبِكَ نَحْيَا وَبِكَ نَمُوتُ وَإِلَيْكَ النُّشُورُ",
+      en: "O Allah, by You we reach the morning and by You we reach the evening; by You we live and by You we die, and to You is the resurrection.",
+      ref: "Tirmidhi" },
+    { title: "🌇 Morning & evening dhikr (3 times)",
+      ar: "بِسْمِ اللَّهِ الَّذِي لَا يَضُرُّ مَعَ اسْمِهِ شَيْءٌ فِي الْأَرْضِ وَلَا فِي السَّمَاءِ وَهُوَ السَّمِيعُ الْعَلِيمُ",
+      en: "In the name of Allah, with whose name nothing on earth or in the heavens can cause harm, and He is the All-Hearing, the All-Knowing.",
+      ref: "Abu Dawud, Tirmidhi" },
+    { title: "🌇 Morning & evening: reliance on Allah",
+      ar: "حَسْبِيَ اللَّهُ لَا إِلَٰهَ إِلَّا هُوَ عَلَيْهِ تَوَكَّلْتُ وَهُوَ رَبُّ الْعَرْشِ الْعَظِيمِ",
+      en: "Allah is sufficient for me; there is no god but Him. In Him I place my trust, and He is the Lord of the Mighty Throne.",
+      ref: "Surah At-Tawbah, 9:129" },
+    { title: "🌙 Before sleeping",
+      ar: "بِاسْمِكَ اللَّهُمَّ أَمُوتُ وَأَحْيَا",
+      en: "O Allah, in Your name I die (sleep) and I live (wake).",
+      ref: "Bukhari" },
+    { title: "☀️ Upon waking up",
+      ar: "الْحَمْدُ لِلَّهِ الَّذِي أَحْيَانَا بَعْدَ مَا أَمَاتَنَا وَإِلَيْهِ النُّشُورُ",
+      en: "All praise is for Allah, who gave us life after having made us die, and to Him is the resurrection.",
+      ref: "Bukhari" }
+  ];
+
+  // ---------- Save / load (in the browser) ----------
+  function load(key, fallback) {
+    try { const v = localStorage.getItem(key); return v === null ? fallback : JSON.parse(v); }
+    catch (e) { return fallback; }
+  }
+  function save(key, value) {
+    try { localStorage.setItem(key, JSON.stringify(value)); } catch (e) {}
+  }
+
+  // ---------- Tabs ----------
+  document.querySelectorAll(".tab").forEach(btn => {
+    btn.addEventListener("click", () => {
+      document.querySelectorAll(".tab").forEach(b => b.classList.remove("active"));
+      document.querySelectorAll(".panel").forEach(p => p.classList.remove("active"));
+      btn.classList.add("active");
+      document.getElementById(btn.dataset.tab).classList.add("active");
+    });
+  });
+
+  // ---------- Tasbih ----------
+  const select = document.getElementById("zikrSelect");
+  const countEl = document.getElementById("count");
+  const ring = document.getElementById("ring");
+  const doneEl = document.getElementById("done");
+  const totalEl = document.getElementById("total");
+  const statsEl = document.getElementById("stats");
+  const targetInput = document.getElementById("targetInput");
+  const soundBtn = document.getElementById("soundBtn");
+  const chips = document.querySelectorAll(".chip");
+  const CIRC = 565.5;
+
+  zikrs.forEach((z, i) => {
+    const opt = document.createElement("option");
+    opt.value = i;
+    opt.textContent = z.en;
+    select.appendChild(opt);
+  });
+
+  let current = Number(load("zikrIndex", 0));
+  if (!zikrs[current]) current = 0;
+  let count = Number(load("zikrCount", 0));
+  let total = Number(load("zikrTotal", 0));
+  let customTarget = Number(load("customTarget", 0)) || 0;
+  let daily = load("dailyCounts", {});
+  if (typeof daily !== "object" || daily === null) daily = {};
+  let soundOn = load("soundOn", true);
+  select.value = current;
+
+  function getTarget() { return customTarget > 0 ? customTarget : zikrs[current].target; }
+
+  function dateKey(daysAgo) {
+    const d = new Date();
+    d.setDate(d.getDate() - daysAgo);
+    return d.getFullYear() + "-" + String(d.getMonth() + 1).padStart(2, "0") + "-" + String(d.getDate()).padStart(2, "0");
+  }
+
+  function getStreak() {
+    let i = daily[dateKey(0)] > 0 ? 0 : 1;
+    let n = 0;
+    while (daily[dateKey(i)] > 0 && n < 3650) { n++; i++; }
+    return n;
+  }
+
+  // ---------- Sound ----------
+  let audioCtx = null;
+  function beep(freq, dur) {
+    if (!soundOn) return;
+    try {
+      audioCtx = audioCtx || new (window.AudioContext || window.webkitAudioContext)();
+      const o = audioCtx.createOscillator();
+      const g = audioCtx.createGain();
+      o.type = "sine";
+      o.frequency.value = freq;
+      g.gain.setValueAtTime(0.15, audioCtx.currentTime);
+      g.gain.exponentialRampToValueAtTime(0.0001, audioCtx.currentTime + dur);
+      o.connect(g);
+      g.connect(audioCtx.destination);
+      o.start();
+      o.stop(audioCtx.currentTime + dur);
+    } catch (e) {}
+  }
+  function renderSoundBtn() {
+    soundBtn.textContent = soundOn ? "🔊 Sound on" : "🔇 Sound off";
+  }
+
+  function renderTasbih() {
+    const z = zikrs[current];
+    const target = getTarget();
+    const streak = getStreak();
+    document.getElementById("zikrAr").textContent = z.ar;
+    document.getElementById("zikrEn").textContent = z.en + " · " + z.meaning;
+    countEl.textContent = count;
+    document.getElementById("target").textContent = "Target: " + target;
+    ring.style.strokeDashoffset = CIRC * (1 - Math.min(count / target, 1));
+    doneEl.textContent = count >= target ? "✨ MashaAllah! Target reached." : "";
+    statsEl.textContent = "Today: " + (daily[dateKey(0)] || 0) + " · Streak: " + streak + (streak === 1 ? " day" : " days");
+    totalEl.textContent = "Total count: " + total;
+    targetInput.value = [33, 100, 1000].includes(customTarget) || customTarget === 0 ? "" : customTarget;
+    chips.forEach(c => c.classList.toggle("active", Number(c.dataset.t) === customTarget));
+    renderSoundBtn();
+    save("zikrIndex", current); save("zikrCount", count); save("zikrTotal", total);
+    save("customTarget", customTarget);
+  }
+
+  document.getElementById("tapBtn").addEventListener("click", () => {
+    count++; total++;
+    const key = dateKey(0);
+    daily[key] = (daily[key] || 0) + 1;
+    save("dailyCounts", daily);
+    renderTasbih();
+    countEl.classList.add("pop");
+    setTimeout(() => countEl.classList.remove("pop"), 120);
+    if (count === getTarget()) {
+      beep(1200, 0.4);
+      if (navigator.vibrate) navigator.vibrate([60, 40, 60]);
+    } else {
+      beep(880, 0.06);
+      if (navigator.vibrate) navigator.vibrate(15);
+    }
+  });
+
+  document.getElementById("resetBtn").addEventListener("click", () => {
+    count = 0;
+    renderTasbih();
+  });
+
+  select.addEventListener("change", () => {
+    current = Number(select.value);
+    count = 0;
+    renderTasbih();
+  });
+
+  chips.forEach(c => c.addEventListener("click", () => {
+    const t = Number(c.dataset.t);
+    customTarget = (customTarget === t) ? 0 : t;   // tap again to go back to default
+    renderTasbih();
+  }));
+
+  targetInput.addEventListener("change", () => {
+    const v = Math.floor(Number(targetInput.value));
+    customTarget = v > 0 ? Math.min(v, 100000) : 0;  // empty = default target
+    renderTasbih();
+  });
+
+  soundBtn.addEventListener("click", () => {
+    soundOn = !soundOn;
+    save("soundOn", soundOn);
+    renderSoundBtn();
+    beep(880, 0.06);
+  });
+
+  // ---------- Dua ----------
+  let d = 0;
+  function renderDua() {
+    const x = duas[d];
+    document.getElementById("duaTitle").textContent = x.title;
+    document.getElementById("duaAr").textContent = x.ar;
+    document.getElementById("duaEn").textContent = x.en;
+    document.getElementById("duaRef").textContent = x.ref;
+    document.getElementById("pos").textContent = (d + 1) + " / " + duas.length;
+  }
+  document.getElementById("nextBtn").addEventListener("click", () => { d = (d + 1) % duas.length; renderDua(); });
+  document.getElementById("prevBtn").addEventListener("click", () => { d = (d - 1 + duas.length) % duas.length; renderDua(); });
+
+  // ---------- Ask for name ----------
+  const gate = document.getElementById("gate");
+  const appEl = document.getElementById("app");
+  const nameInput = document.getElementById("nameInput");
+  const gateMsg = document.getElementById("gateMsg");
+
+  function showApp(name) {
+    document.getElementById("helloText").textContent = "Welcome, " + name + "!";
+    gate.classList.add("hidden");
+    appEl.classList.remove("hidden");
+  }
+  function showGate() {
+    appEl.classList.add("hidden");
+    gate.classList.remove("hidden");
+    nameInput.value = "";
+    gateMsg.textContent = "";
+    nameInput.focus();
+  }
+  function enter() {
+    const name = nameInput.value.trim();
+    if (name === "") {
+      gateMsg.textContent = "Please enter your name.";
+      return;
+    }
+    save("userName", name);
+    showApp(name);
+  }
+  document.getElementById("enterBtn").addEventListener("click", enter);
+  nameInput.addEventListener("keydown", (e) => { if (e.key === "Enter") enter(); });
+  document.getElementById("changeName").addEventListener("click", showGate);
+
+  const savedName = load("userName", "");
+  if (savedName) showApp(savedName); else nameInput.focus();
+
+  renderTasbih();
+  renderDua();
+</script>
+</body>
+</html>
